@@ -2,12 +2,14 @@ import random
 from Class import Triangle, Rect, Circle
 from Collision import isCirclesColliding, isRectanglesColliding, Collision
 import time
+
 rec = []
 tri = []
 cir = []
 size = 11
 array = []
 check = []
+
 
 def generateRec(f):
     a = random.randint(0, 20)
@@ -16,8 +18,8 @@ def generateRec(f):
         c = a
         a = b
         b = c
-    x = random.randint(-50, 50)
-    y = random.randint(-50, 50)
+    x = random.randint(-400, 400)
+    y = random.randint(-400, 400)
     f.write("#Rect\n")
     f.write("{} {}\n".format(a, b))
     f.write("{} {}\n".format(x, y))
@@ -25,8 +27,8 @@ def generateRec(f):
 
 def generateCir(f):
     bk = random.randint(0, 10)
-    x = random.randint(-50, 50)
-    y = random.randint(-50, 50)
+    x = random.randint(-400, 400)
+    y = random.randint(-400, 400)
     f.write("#Circle\n")
     f.write("{}\n".format(bk))
     f.write("{} {}\n".format(x, y))
@@ -39,15 +41,15 @@ def generateTri(f):
         a = random.randint(0, 20)
         b = random.randint(0, 20)
         c = random.randint(0, a + b)
-    x = random.randint(-50, 50)
-    y = random.randint(-50, 50)
+    x = random.randint(-400, 400)
+    y = random.randint(-400, 400)
     f.write("#Triangle\n")
     f.write("{} {} {}\n".format(a, b, c))
     f.write("{} {}\n".format(x, y))
 
 
 # Bài 1
-def createfile(filename="input.txt", amount=10*10*10):
+def createfile(filename="input.txt", amount=10 * 10 * 10):
     global size
     size = amount
     try:
@@ -67,6 +69,9 @@ def readfile(filename):
     global cir
     global tri
     global size
+    rec = []
+    cir = []
+    tri = []
     try:
         with open(filename) as file:
             line = file.readline()
@@ -113,29 +118,23 @@ def checkmax():
         if i.ChuVi > maxCV:
             cv = i
             maxCV = i.ChuVi
-            print(maxCV)
         if i.DienTich > maxDT:
             dt = i
             maxDT = i.DienTich
-            print(maxDT)
     for i in cir:
         if i.ChuVi > maxCV:
             cv = i
             maxCV = i.ChuVi
-            print(maxCV)
         if i.DienTich > maxDT:
             dt = i
             maxDT = i.DienTich
-            print(maxDT)
     for i in tri:
         if i.ChuVi > maxCV:
             cv = i
             maxCV = i.ChuVi
-            print(maxCV)
         if i.DienTich > maxDT:
             dt = i
             maxDT = i.DienTich
-            print(maxDT)
     print("Hình có chu vi lớn nhất với chu vi là {}:".format(maxCV))
     cv.printinfo()
     print("-" * 30)
@@ -166,31 +165,35 @@ def getinfo(e):
             rec[i].printinfo()
             print()
 
+
 def getCollide(x, y, value):
     value += 1
     check[x][y] = False
     check[y][x] = False
-    for i in range(0, size*2):
-        if array[y][i] == 1 and check[y][i]:
+    for i in range(0, size * 2):
+        if array[y][i] and check[y][i]:
             value = getCollide(y, i, value)
     return value
 
+
 def arrayinput():
     global array
-    count=1
+    count = 0
     for indexcir in range(0, len(cir)):
-        for indexcir2 in range(indexcir+1, len(cir)):
+        for indexcir2 in range(indexcir + 1, len(cir)):
             rs = isCirclesColliding(cir[indexcir], cir[indexcir2])
             if rs:
-                array[indexcir][indexcir2] = 1
-                array[indexcir2][indexcir] = 1
+                array[indexcir][indexcir2] = True
+                array[indexcir2][indexcir] = True
+                count+=1
 
     for indexrec in range(0, len(rec)):
-        for indexrec2 in range(indexrec+1, len(rec)):
+        for indexrec2 in range(indexrec + 1, len(rec)):
             rs = isRectanglesColliding(rec[indexrec], rec[indexrec2])
             if rs:
-                array[size + indexrec][size + indexrec2] = 1
-                array[size + indexrec2][size + indexrec] = 1
+                array[size + indexrec][size + indexrec2] = True
+                array[size + indexrec2][size + indexrec] = True
+                count += 1
 
     for indexcir in range(0, len(cir)):
         for indexrec in range(0, len(rec)):
@@ -198,32 +201,53 @@ def arrayinput():
             r = rec[indexrec]
             rs = Collision(c.X, c.Y, c.BK, r.X, r.Y, r.Dai, r.Rong)
             if rs:
-                array[indexcir][size + indexrec] = 1
-                array[size + indexrec][indexcir] = 1
-def getcollidemax():
-    global maxstring
-    global stri
-    maximum = 0
-    for i in range(0, size * 2):
-        for j in range(0, size * 2):
-            if array[i][j] == 1 and check[i][j]:
-                data = getCollide(i, j, 1)
-                if data > maximum:
-                    maximum = data
-    print("Số hình chồng lên nhiều nhất là {}".format(maximum))
+                array[indexcir][size + indexrec] = True
+                array[size + indexrec][indexcir] = True
+                count += 1
+    print(count)
 
+def BFS(s):
+    dau, cuoi, u = 0, 0, 0
+    value = 1
+    queue = [s]
+    check[s] = False
+    while dau <= cuoi:
+        u = queue[dau]
+        dau += 1
+        for i in range(0, size*2):
+            if array[u][i] and check[i]:
+                cuoi += 1
+                queue.append(i)
+                check[i] = False
+                value += 1
+    return value
+
+
+def getcollidemax():
+    maximum = 0
+    amount = []
+    for i in range(0, size * 2):
+        data = BFS(i)
+        if data > maximum:
+            maximum = data
+        if data not in amount:
+            amount.append(data)
+    amount.sort()
+    print("Số hình chồng lên nhiều nhất là {}".format(maximum))
 
 def createarray():
     global array
     global check
-    global check2
-    for i in range(0, size*2):
+    array = []
+    check = []
+    for i in range(0, size * 2):
         ar1 = []
-        for j in range(0, size*2):
-            ar1.append(0)
+        for j in range(0, size * 2):
+            ar1.append(False)
         array.append(ar1)
-    for i in range(0, size*2):
+    for i in range(0, size * 2):
         ar1 = []
-        for j in range(0, size*2):
+        for j in range(0, size * 2):
             ar1.append(True)
         check.append(ar1)
+
