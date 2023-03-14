@@ -17,6 +17,8 @@ while check != 0 or check.isnumeric() is False:
         while rs is False:
             filename = str(input("Nhập tên file:")) + ".txt"
             rs = Service.readfile(filename)
+            Service.createarray()
+            Service.arrayinput()
     elif check == 2:
         #Bài 1
         rs = False
@@ -29,7 +31,7 @@ while check != 0 or check.isnumeric() is False:
         Service.checkmax()
     elif check == 4:
         #Bài 4c
-        Service.maxcollide()
+        Service.getcollidemax()
     elif check == 5:
         e=0
         while e<=0 or e>3:
@@ -40,3 +42,4 @@ while check != 0 or check.isnumeric() is False:
             Service.getinfo(e)
     elif check == 0:
         break
+    print("*"*100)
