@@ -1,6 +1,8 @@
+import math
 import random
 from Class import Triangle, Rect, Circle
-from Collision import isCirclesColliding, isRectanglesColliding, Collision
+from Collision import isCirclesColliding, isRectanglesColliding, Collision, isnotTriangleCollision, \
+    CircleTriangleCollision, TriangleRectangleCollision
 import time
 
 rec = []
@@ -18,8 +20,8 @@ def generateRec(f):
         c = a
         a = b
         b = c
-    x = random.randint(-400, 400)
-    y = random.randint(-400, 400)
+    x = random.randint(-300, 300)
+    y = random.randint(-300, 300)
     f.write("#Rect\n")
     f.write("{} {}\n".format(a, b))
     f.write("{} {}\n".format(x, y))
@@ -27,8 +29,8 @@ def generateRec(f):
 
 def generateCir(f):
     bk = random.randint(0, 10)
-    x = random.randint(-400, 400)
-    y = random.randint(-400, 400)
+    x = random.randint(-300, 300)
+    y = random.randint(-300, 300)
     f.write("#Circle\n")
     f.write("{}\n".format(bk))
     f.write("{} {}\n".format(x, y))
@@ -41,8 +43,8 @@ def generateTri(f):
         a = random.randint(0, 20)
         b = random.randint(0, 20)
         c = random.randint(0, a + b)
-    x = random.randint(-400, 400)
-    y = random.randint(-400, 400)
+    x = random.randint(-300, 300)
+    y = random.randint(-300, 300)
     f.write("#Triangle\n")
     f.write("{} {} {}\n".format(a, b, c))
     f.write("{} {}\n".format(x, y))
@@ -166,14 +168,16 @@ def getinfo(e):
             print()
 
 
-def getCollide(x, y, value):
-    value += 1
-    check[x][y] = False
-    check[y][x] = False
-    for i in range(0, size * 2):
-        if array[y][i] and check[y][i]:
-            value = getCollide(y, i, value)
-    return value
+def getpoint(triangle):
+    point = []
+    h = 2 * triangle.DienTich / triangle.C
+    chan = math.sqrt(pow(triangle.A, 2) - pow(h, 2))
+    x2 = triangle.X + chan
+    y2 = triangle.Y + h
+    point.append([triangle.X, triangle.Y])
+    point.append([x2, y2])
+    point.append([triangle.X + triangle.C, triangle.Y])
+    return point
 
 
 def arrayinput():
@@ -185,7 +189,7 @@ def arrayinput():
             if rs:
                 array[indexcir][indexcir2] = True
                 array[indexcir2][indexcir] = True
-                count+=1
+                count += 1
 
     for indexrec in range(0, len(rec)):
         for indexrec2 in range(indexrec + 1, len(rec)):
@@ -194,7 +198,15 @@ def arrayinput():
                 array[size + indexrec][size + indexrec2] = True
                 array[size + indexrec2][size + indexrec] = True
                 count += 1
-
+    for indextri in range(0, len(tri)):
+        for indextri2 in range(indextri + 1, len(tri)):
+            point1 = getpoint(tri[indextri])
+            point2 = getpoint(tri[indextri2])
+            rs = isnotTriangleCollision(point1, point2)
+            if rs is False:
+                array[size * 2 + indextri][size * 2 + indextri2] = True
+                array[size * 2 + indextri2][size * 2 + indextri] = True
+                count += 1
     for indexcir in range(0, len(cir)):
         for indexrec in range(0, len(rec)):
             c = cir[indexcir]
@@ -204,7 +216,22 @@ def arrayinput():
                 array[indexcir][size + indexrec] = True
                 array[size + indexrec][indexcir] = True
                 count += 1
+    for indexcir in range(0, len(cir)):
+        for indextri in range(0, len(tri)):
+            point = getpoint(tri[indextri])
+            rs = CircleTriangleCollision(point, cir[indexcir])
+            if rs:
+                array[indexcir][size * 2 + indextri] = True
+                array[size * 2 + indextri][indexcir] = True
+    for indexrec in range(0, len(rec)):
+        for indextri in range(0, len(tri)):
+            point = getpoint(tri[indextri])
+            rs = TriangleRectangleCollision(point, rec[indexrec])
+            if rs:
+                array[size + indexrec][size * 2 + indextri] = True
+                array[size * 2 + indextri][size + indexrec] = True
     print(count)
+
 
 def BFS(s):
     dau, cuoi, u = 0, 0, 0
@@ -214,7 +241,7 @@ def BFS(s):
     while dau <= cuoi:
         u = queue[dau]
         dau += 1
-        for i in range(0, size*2):
+        for i in range(0, size * 3):
             if array[u][i] and check[i]:
                 cuoi += 1
                 queue.append(i)
@@ -226,7 +253,7 @@ def BFS(s):
 def getcollidemax():
     maximum = 0
     amount = []
-    for i in range(0, size * 2):
+    for i in range(0, size * 3):
         data = BFS(i)
         if data > maximum:
             maximum = data
@@ -235,19 +262,19 @@ def getcollidemax():
     amount.sort()
     print("Số hình chồng lên nhiều nhất là {}".format(maximum))
 
+
 def createarray():
     global array
     global check
     array = []
     check = []
-    for i in range(0, size * 2):
+    for i in range(0, size * 3):
         ar1 = []
-        for j in range(0, size * 2):
+        for j in range(0, size * 3):
             ar1.append(False)
         array.append(ar1)
-    for i in range(0, size * 2):
+    for i in range(0, size * 3):
         ar1 = []
-        for j in range(0, size * 2):
+        for j in range(0, size * 3):
             ar1.append(True)
         check.append(ar1)
-
